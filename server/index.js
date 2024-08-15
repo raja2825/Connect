@@ -1,58 +1,42 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const EmployeeModel = require('./models/Employee');
-const dotenv = require('dotenv');
+const express=require("express");
+const mongoose=require("mongoose")
+const cors=require("cors")
+const EmployeeModel=require('./models/Employee')
+const app=express()
+// app.use(cors({
+//     // origin:["https://deploy-mern-1whq.vercel.app"],
+//     // methods:["POST","GET"],
+//     // credentials:true
+// }))
+app.use(cors())
 
-dotenv.config(); // Load environment variables
+app.use(express.json())
+mongoose.connect("mongodb+srv://rajasankar2004s:!EUqFH@h$Jqm7j$@cluster0.3apgo.mongodb.net/employee?retryWrites=true&w=majority&appName=Cluster0");
 
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
-
-// Login Route
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        const user = await EmployeeModel.findOne({ email: email });
-        if (user) {
-            if (user.password === password) {
-                res.json("Success");
-            } else {
-                res.status(400).json("Incorrect password");
+app.post("/login",(req,res)=>{
+    const{email,password}=req.body;
+    EmployeeModel.findOne({email:email})
+    .then(user=>{
+        if(user){
+            if(user.password===password){
+                res.json("Sucess")
             }
-        } else {
-            res.status(404).json("No record found");
+        
+        else{
+            res.json("incorrect password")
         }
-    } catch (err) {
-        res.status(500).json("Server error");
     }
-});
-
-// Register Route
-app.post('/register', async (req, res) => {
-    try {
-        const newEmployee = new EmployeeModel(req.body);
-        const savedEmployee = await newEmployee.save();
-        res.json(savedEmployee);
-    } catch (err) {
-        res.status(500).json(err);
+    else{
+        res.json("no record existed")
     }
-});
-
-// Start Server
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+    })
+})
+app.post('/register',(req,res)=>{
+EmployeeModel.create(req.body)
+.then(employees=>res.json(employees))
+.catch(err=>res.json(err))
+})
+app.listen(3001,()=>{
+    console.log("server is running");
+    
+}) 
